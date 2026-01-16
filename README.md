@@ -1,15 +1,20 @@
 # saltpack.js
 
-A modern JavaScript/TypeScript implementation of the [Saltpack](https://saltpack.org/) encrypted messaging format for Deno and other JavaScript runtimes.
+A modern JavaScript/TypeScript implementation of the
+[Saltpack](https://saltpack.org/) encrypted messaging format for Deno and other
+JavaScript runtimes.
 
 [![JSR](https://jsr.io/badges/@kuboon/saltpack)](https://jsr.io/@kuboon/saltpack)
 [![JSR Score](https://jsr.io/badges/@kuboon/saltpack/score)](https://jsr.io/@kuboon/saltpack)
 
 ## What is Saltpack?
 
-Saltpack is a modern cryptographic message format designed for encryption and signing, providing better security and usability than legacy formats like PGP. It features:
+Saltpack is a modern cryptographic message format designed for encryption and
+signing, providing better security and usability than legacy formats like PGP.
+It features:
 
-- **Modern cryptography**: Uses NaCl's box and secretbox primitives (Curve25519, XSalsa20, Poly1305)
+- **Modern cryptography**: Uses NaCl's box and secretbox primitives (Curve25519,
+  XSalsa20, Poly1305)
 - **Streaming support**: Handles large messages efficiently with 1 MiB chunks
 - **Multiple recipients**: Encrypt to multiple recipients with a single message
 - **Authenticated encryption**: Only outputs authenticated bytes
@@ -96,7 +101,8 @@ Decrypts a Saltpack encrypted message.
 
 - `encrypted: Uint8Array | string` - The encrypted message
 - `recipientKeyPair: KeyPair` - Recipient's key pair
-- Returns: `Promise<DecryptionResult>` - Contains plaintext and optional sender public key
+- Returns: `Promise<DecryptionResult>` - Contains plaintext and optional sender
+  public key
 
 ### Signing
 
@@ -115,7 +121,8 @@ Verifies a signed message.
 
 - `signedMessage: Uint8Array | string` - The signed message
 - `signerPublicKey: PublicKey` - Expected signer's public key
-- Returns: `Promise<VerificationResult>` - Contains message, sender public key, and verification status
+- Returns: `Promise<VerificationResult>` - Contains message, sender public key,
+  and verification status
 
 ### Key Generation
 
@@ -195,9 +202,11 @@ This implementation follows the Saltpack specification:
 
 ## Related Projects
 
-- [saltpack (Go)](https://github.com/keybase/saltpack) - Reference implementation
+- [saltpack (Go)](https://github.com/keybase/saltpack) - Reference
+  implementation
 - [Keybase](https://keybase.io/) - Uses Saltpack for secure messaging
 
 ## Acknowledgments
 
-Saltpack was designed by the Keybase team. This is an independent JavaScript/TypeScript implementation.
+Saltpack was designed by the Keybase team. This is an independent
+JavaScript/TypeScript implementation.

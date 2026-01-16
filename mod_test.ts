@@ -94,7 +94,10 @@ Deno.test("encrypt with armor option", async () => {
   });
 
   assertEquals(typeof encrypted, "string");
-  assertEquals((encrypted as string).includes("BEGIN SALTPACK ENCRYPTED MESSAGE"), true);
+  assertEquals(
+    (encrypted as string).includes("BEGIN SALTPACK ENCRYPTED MESSAGE"),
+    true,
+  );
 });
 
 Deno.test("encrypt requires at least one recipient", async () => {
@@ -129,7 +132,10 @@ Deno.test("sign with armor option", async () => {
   const signed = await sign(message, keyPair, { armor: true });
 
   assertEquals(typeof signed, "string");
-  assertEquals((signed as string).includes("BEGIN SALTPACK SIGNED MESSAGE"), true);
+  assertEquals(
+    (signed as string).includes("BEGIN SALTPACK SIGNED MESSAGE"),
+    true,
+  );
 });
 
 Deno.test("verify returns a verification result", async () => {

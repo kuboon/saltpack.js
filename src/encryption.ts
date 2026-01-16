@@ -59,7 +59,11 @@ export async function encrypt(
   // 2. Encrypt the payload key for each recipient
   // 3. Chunk the plaintext into 1 MiB blocks
   // 4. Encrypt each chunk with the payload key
-  const encryptedPayload = await encryptPayload(plaintext, ephemeralKeyPair, recipientPublicKeys);
+  const encryptedPayload = await encryptPayload(
+    plaintext,
+    ephemeralKeyPair,
+    recipientPublicKeys,
+  );
 
   // Combine header and payload using MessagePack
   const encrypted = combineHeaderAndPayload(header, encryptedPayload);
@@ -133,7 +137,10 @@ function encryptPayload(
   return Promise.resolve(new Uint8Array(plaintext.length));
 }
 
-function combineHeaderAndPayload(header: Uint8Array, payload: Uint8Array): Uint8Array {
+function combineHeaderAndPayload(
+  header: Uint8Array,
+  payload: Uint8Array,
+): Uint8Array {
   const result = new Uint8Array(header.length + payload.length);
   result.set(header, 0);
   result.set(payload, header.length);

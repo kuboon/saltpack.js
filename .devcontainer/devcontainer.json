@@ -1,6 +1,9 @@
 {
   "name": "Deno",
-  "image": "denoland/deno:latest",
+  "image": "mcr.microsoft.com/devcontainers/base:debian",
+  "features": {
+    "ghcr.io/devcontainers/features/deno:1": {}
+  },
   "customizations": {
     "vscode": {
       "extensions": [
@@ -15,6 +18,5 @@
       }
     }
   },
-  "postCreateCommand": "deno --version",
-  "remoteUser": "deno"
+  "postCreateCommand": "deno --version"
 }

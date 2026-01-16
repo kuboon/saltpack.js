@@ -104,7 +104,10 @@ function generateNonce(): Uint8Array {
   return crypto.getRandomValues(new Uint8Array(32));
 }
 
-function createSigningHeader(_publicKey: Uint8Array, _nonce: Uint8Array): Uint8Array {
+function createSigningHeader(
+  _publicKey: Uint8Array,
+  _nonce: Uint8Array,
+): Uint8Array {
   // Placeholder - would create MessagePack-encoded header
   // Format: ["saltpack", [2, 0], 1, sender_public_key, nonce]
   return new Uint8Array([
@@ -126,7 +129,10 @@ function signPayload(
   return Promise.resolve(new Uint8Array(message.length));
 }
 
-function combineHeaderAndPayload(header: Uint8Array, payload: Uint8Array): Uint8Array {
+function combineHeaderAndPayload(
+  header: Uint8Array,
+  payload: Uint8Array,
+): Uint8Array {
   const result = new Uint8Array(header.length + payload.length);
   result.set(header, 0);
   result.set(payload, header.length);

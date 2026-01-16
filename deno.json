@@ -6,14 +6,6 @@
     "dev": "deno run --watch mod.ts",
     "test": "deno test --allow-read --allow-write"
   },
-  "fmt": {
-    "useTabs": false,
-    "lineWidth": 100,
-    "indentWidth": 2,
-    "semiColons": true,
-    "singleQuote": false,
-    "proseWrap": "preserve"
-  },
   "lint": {
     "rules": {
       "tags": ["recommended"]

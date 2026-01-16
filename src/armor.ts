@@ -55,7 +55,10 @@ function decodeBase64(str: string): Uint8Array {
  * // END SALTPACK ENCRYPTED MESSAGE.
  * ```
  */
-export function armor(data: Uint8Array, messageType: "ENCRYPTED" | "SIGNED"): string {
+export function armor(
+  data: Uint8Array,
+  messageType: "ENCRYPTED" | "SIGNED",
+): string {
   const encoded = encodeBase64(data);
 
   // Split into blocks of BLOCK_SIZE characters
@@ -64,8 +67,12 @@ export function armor(data: Uint8Array, messageType: "ENCRYPTED" | "SIGNED"): st
     blocks.push(encoded.slice(i, i + BLOCK_SIZE));
   }
 
-  const header = messageType === "ENCRYPTED" ? ARMOR_HEADER_ENCRYPTION : ARMOR_HEADER_SIGNED;
-  const footer = messageType === "ENCRYPTED" ? ARMOR_FOOTER_ENCRYPTION : ARMOR_FOOTER_SIGNED;
+  const header = messageType === "ENCRYPTED"
+    ? ARMOR_HEADER_ENCRYPTION
+    : ARMOR_HEADER_SIGNED;
+  const footer = messageType === "ENCRYPTED"
+    ? ARMOR_FOOTER_ENCRYPTION
+    : ARMOR_FOOTER_SIGNED;
 
   return [header, ...blocks, footer].join("\n");
 }

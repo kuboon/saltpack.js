@@ -6,7 +6,8 @@ This document summarizes the saltpack.js implementation and setup.
 
 ### 1. Deno Development Environment
 
-- **`.devcontainer/devcontainer.json`**: Visual Studio Code Dev Container configuration for Deno development
+- **`.devcontainer/devcontainer.json`**: Visual Studio Code Dev Container
+  configuration for Deno development
   - Uses the official Deno Docker image
   - Includes the Deno VS Code extension
   - Configured for automatic formatting on save
@@ -37,9 +38,11 @@ This document summarizes the saltpack.js implementation and setup.
 
 ### 3. Core Library Structure
 
-The library follows the Saltpack specification (https://saltpack.org/) and provides:
+The library follows the Saltpack specification (https://saltpack.org/) and
+provides:
 
 #### Main Exports (`mod.ts`)
+
 - `encrypt()` - Encrypt messages for one or more recipients
 - `decrypt()` - Decrypt Saltpack encrypted messages
 - `sign()` - Sign messages with attached signatures
@@ -50,6 +53,7 @@ The library follows the Saltpack specification (https://saltpack.org/) and provi
 - `generateSigningKeyPair()` - Generate signing key pairs (Ed25519)
 
 #### Module Organization
+
 - `src/types.ts` - Type definitions for the library
 - `src/keys.ts` - Key generation utilities
 - `src/armor.ts` - ASCII armor encoding/decoding
@@ -96,6 +100,7 @@ Three example files demonstrating usage:
 ## Current Implementation Status
 
 ### Fully Implemented ✅
+
 - Project structure and configuration
 - Deno development environment
 - JSR publishing workflow
@@ -109,21 +114,27 @@ Three example files demonstrating usage:
 - Documentation
 
 ### Placeholder/To Be Implemented 🚧
-The current implementation includes placeholder/stub implementations for the actual cryptographic operations:
+
+The current implementation includes placeholder/stub implementations for the
+actual cryptographic operations:
 
 - **Encryption/Decryption**: The core NaCl box encryption is not yet implemented
 - **Signing/Verification**: The Ed25519 signing is not yet implemented
 - **MessagePack encoding**: Header and payload encoding is not yet implemented
 - **Key derivation**: X25519 and Ed25519 key derivation from seeds
 
-These placeholders are intentional to provide the framework and API design. A full implementation would require:
-1. Integration with a cryptography library (e.g., TweetNaCl, sodium-native, or Web Crypto API)
+These placeholders are intentional to provide the framework and API design. A
+full implementation would require:
+
+1. Integration with a cryptography library (e.g., TweetNaCl, sodium-native, or
+   Web Crypto API)
 2. MessagePack encoding/decoding library
 3. Implementation of the Saltpack protocol specifications for each mode
 
 ## Publishing to JSR
 
 ### First-time Setup
+
 1. Go to https://jsr.io/ and create an account
 2. Create a scope (e.g., `@kuboon`)
 3. Get your API token from JSR settings
@@ -131,11 +142,13 @@ These placeholders are intentional to provide the framework and API design. A fu
 ### Publishing Process
 
 #### Option 1: Manual Publishing
+
 ```bash
 deno publish
 ```
 
 #### Option 2: Automated Publishing via GitHub Actions
+
 1. Add JSR_TOKEN as a GitHub repository secret
 2. Create and push a version tag:
    ```bash

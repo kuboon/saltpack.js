@@ -1,6 +1,7 @@
 # Contributing to saltpack.js
 
-Thank you for your interest in contributing to saltpack.js! This document provides guidelines for contributing to the project.
+Thank you for your interest in contributing to saltpack.js! This document
+provides guidelines for contributing to the project.
 
 ## Development Setup
 
@@ -115,8 +116,10 @@ Examples:
 
 ## Questions or Issues?
 
-If you have questions or find bugs, please [open an issue](https://github.com/kuboon/saltpack.js/issues) on GitHub.
+If you have questions or find bugs, please
+[open an issue](https://github.com/kuboon/saltpack.js/issues) on GitHub.
 
 ## License
 
-By contributing to saltpack.js, you agree that your contributions will be licensed under the MIT License.
+By contributing to saltpack.js, you agree that your contributions will be
+licensed under the MIT License.
