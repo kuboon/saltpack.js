@@ -34,24 +34,33 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Check version
+        id: check
+        run: |
+          VERSION="v$(jq -r .version deno.json)"
+          echo "Version: $VERSION"
+          git fetch --tags
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "Tag $VERSION already exists."
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Tag $VERSION not found."
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup Deno
+        if: steps.check.outputs.exists == 'false'
         uses: denoland/setup-deno@v2
 
-      - name: Check and Release
+      - name: Create Tag and Publish
+        if: steps.check.outputs.exists == 'false'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          VERSION=$(deno eval 'console.log("v" + JSON.parse(await Deno.readTextFile("deno.json")).version)')
-          echo "Version: $VERSION"
+          VERSION="${{ steps.check.outputs.version }}"
 
-          git fetch --tags
-
-          if git rev-parse "$VERSION" >/dev/null 2>&1; then
-            echo "Tag $VERSION already exists."
-          else
-            echo "Tag $VERSION not found. Creating tag and publishing."
-            git tag "$VERSION"
-            git push origin "$VERSION"
-            deno publish
-          fi
+          git tag "$VERSION"
+          git push origin "$VERSION"
+          deno publish
