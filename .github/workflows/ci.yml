@@ -22,3 +22,36 @@ jobs:
       - run: deno check
       - run: deno test -P
       - run: deno fmt --check
+
+  release:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+
+      - name: Check and Release
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          VERSION=$(deno eval 'console.log("v" + JSON.parse(await Deno.readTextFile("deno.json")).version)')
+          echo "Version: $VERSION"
+
+          git fetch --tags
+
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "Tag $VERSION already exists."
+          else
+            echo "Tag $VERSION not found. Creating tag and publishing."
+            git tag "$VERSION"
+            git push origin "$VERSION"
+            deno publish
+          fi

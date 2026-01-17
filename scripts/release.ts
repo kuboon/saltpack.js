@@ -27,30 +27,3 @@ await Deno.writeTextFile(
   JSON.stringify(denoJson, null, 2) + "\n",
 );
 console.log(`Updated deno.json version to ${newVersion}`);
-
-// Run git commands
-async function run(cmd: string[]) {
-  console.log(`> ${cmd.join(" ")}`);
-  const command = new Deno.Command(cmd[0], {
-    args: cmd.slice(1),
-    stdout: "inherit",
-    stderr: "inherit",
-  });
-  const { code } = await command.output();
-  if (code !== 0) {
-    console.error(`Command failed with code ${code}`);
-    Deno.exit(code);
-  }
-}
-
-const tagName = `v${newVersion}`;
-
-await run(["git", "add", "deno.json"]);
-await run(["git", "commit", "-m", `chore: bump version to ${newVersion}`]);
-await run(["git", "tag", tagName]);
-await run(["git", "push", "origin", "main"]); // push commit first
-await run(["git", "push", "origin", tagName]); // trigger workflow
-
-console.log(
-  `\nSuccessfully pushed tag ${tagName} to trigger release workflow.`,
-);
