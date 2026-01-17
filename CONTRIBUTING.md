@@ -17,40 +17,18 @@ provides guidelines for contributing to the project.
 ### Running Tests
 
 ```bash
-deno test --allow-read --allow-write
+deno test -P
 ```
 
-### Linting
+### Linting, Type Checking and Formatting
 
 ```bash
 deno lint
-```
-
-### Formatting
-
-```bash
+deno check
 deno fmt
 ```
 
-To check formatting without making changes:
-
-```bash
-deno fmt --check
-```
-
-### Type Checking
-
-```bash
-deno check mod.ts
-```
-
-## Code Style
-
-- Follow the existing code style in the project
-- Use TypeScript for all new code
-- Add JSDoc comments to all exported functions and types
-- Keep line length under 100 characters
-- Use 2 spaces for indentation
+Use `deno task check:all` for all at once.
 
 ## Writing Documentation
 
@@ -91,29 +69,6 @@ export async function encrypt(...) {
 - Use descriptive test names
 - Follow the existing test structure
 
-## Pull Request Process
-
-1. Fork the repository
-2. Create a new branch for your feature: `git checkout -b feature/my-feature`
-3. Make your changes
-4. Run tests and linting: `deno test && deno lint && deno fmt --check`
-5. Commit your changes with a clear message
-6. Push to your fork
-7. Open a Pull Request
-
-## Commit Messages
-
-- Use clear, descriptive commit messages
-- Start with a verb in present tense (e.g., "Add", "Fix", "Update")
-- Keep the first line under 72 characters
-- Add detailed description if needed
-
-Examples:
-
-- `Add support for detached signatures`
-- `Fix encryption for anonymous senders`
-- `Update documentation for verify function`
-
 ## Questions or Issues?
 
 If you have questions or find bugs, please
@@ -122,4 +77,5 @@ If you have questions or find bugs, please
 ## License
 
 By contributing to saltpack.js, you agree that your contributions will be
-licensed under the MIT License.
+licensed under the LICENSE file. Note that this MIT License has additional part.
+See the LICENSE file for details.
