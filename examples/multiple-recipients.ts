@@ -4,7 +4,7 @@
  * Run with: deno run examples/multiple-recipients.ts
  */
 
-import { decrypt, encrypt, generateKeyPair } from "../mod.ts";
+import { decryptFromStr, encryptToStr, generateKeyPair } from "../mod.ts";
 
 async function main() {
   console.log("Saltpack Multiple Recipients Example\n");
@@ -28,11 +28,10 @@ async function main() {
 
   // Encrypt for multiple recipients
   console.log("3. Encrypting message for 3 recipients...");
-  const encrypted = await encrypt(
+  const encrypted = await encryptToStr(
     plaintext,
     sender,
     [alice.publicKey, bob.publicKey, charlie.publicKey],
-    { armor: true },
   );
   console.log("   ✓ Message encrypted for Alice, Bob, and Charlie\n");
 
@@ -41,19 +40,19 @@ async function main() {
 
   // Alice decrypts
   console.log("   Alice decrypting...");
-  const aliceResult = await decrypt(encrypted, alice);
+  const aliceResult = await decryptFromStr(encrypted, alice);
   const aliceText = new TextDecoder().decode(aliceResult.plaintext);
   console.log(`   ✓ Alice received: "${aliceText}"\n`);
 
   // Bob decrypts
   console.log("   Bob decrypting...");
-  const bobResult = await decrypt(encrypted, bob);
+  const bobResult = await decryptFromStr(encrypted, bob);
   const bobText = new TextDecoder().decode(bobResult.plaintext);
   console.log(`   ✓ Bob received: "${bobText}"\n`);
 
   // Charlie decrypts
   console.log("   Charlie decrypting...");
-  const charlieResult = await decrypt(encrypted, charlie);
+  const charlieResult = await decryptFromStr(encrypted, charlie);
   const charlieText = new TextDecoder().decode(charlieResult.plaintext);
   console.log(`   ✓ Charlie received: "${charlieText}"\n`);
 

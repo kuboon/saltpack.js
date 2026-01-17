@@ -1,13 +1,18 @@
 import { parseArgs } from "@std/cli/parse-args";
 import { readAll } from "@std/io/read-all";
-import { decrypt, encrypt } from "./encryption.ts";
+import {
+  decrypt,
+  decryptFromStr,
+  encrypt,
+  encryptToStr,
+} from "./encryption.ts";
 import {
   generateKeyPair,
   generateSigningKeyPair,
   getKeyPairFromSecret,
   getSigningKeyPairFromSecret,
 } from "./keys.ts";
-import { sign, verify } from "./signing.ts";
+import { sign, signToStr, verify, verifyFromStr } from "./signing.ts";
 import type { KeyPair } from "./types.ts";
 import { fromHex, toHex } from "./utils.ts";
 
@@ -96,10 +101,13 @@ async function handleEncrypt(args: ReturnType<typeof parseArgs>) {
   const senderKp: KeyPair | null = null;
 
   try {
-    const encrypted = await encrypt(plaintext, senderKp, recipients, {
-      armor: args.armor,
-    });
-    await outputResult(encrypted);
+    if (args.armor) {
+      const encrypted = await encryptToStr(plaintext, senderKp, recipients);
+      outputResult(encrypted);
+    } else {
+      const encrypted = await encrypt(plaintext, senderKp, recipients);
+      outputResult(encrypted);
+    }
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e);
     console.error("Encryption error:", message);
@@ -122,12 +130,12 @@ async function handleDecrypt(args: ReturnType<typeof parseArgs>) {
 
   try {
     const inputStr = new TextDecoder().decode(encrypted);
-    const input = inputStr.trim().startsWith("BEGIN SALTPACK")
-      ? inputStr
-      : encrypted;
+    const isArmor = inputStr.trim().startsWith("BEGIN SALTPACK");
 
-    const result = await decrypt(input, recipientKp);
-    // console.error("Decrypted plaintext length:", result.plaintext.length);
+    const result = await (isArmor
+      ? decryptFromStr(inputStr, recipientKp)
+      : decrypt(encrypted, recipientKp));
+
     await Deno.stdout.write(result.plaintext);
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e);
@@ -150,8 +158,13 @@ async function handleSign(args: ReturnType<typeof parseArgs>) {
   const message = await readAll(Deno.stdin);
 
   try {
-    const signed = await sign(message, signingKp, { armor: args.armor });
-    await outputResult(signed);
+    if (args.armor) {
+      const signed = await signToStr(message, signingKp);
+      outputResult(signed);
+    } else {
+      const signed = await sign(message, signingKp);
+      outputResult(signed);
+    }
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e);
     console.error("Signing error:", message);
@@ -172,11 +185,12 @@ async function handleVerify(args: ReturnType<typeof parseArgs>) {
 
   try {
     const inputStr = new TextDecoder().decode(signed);
-    const input = inputStr.trim().startsWith("BEGIN SALTPACK")
-      ? inputStr
-      : signed;
+    const isArmor = inputStr.trim().startsWith("BEGIN SALTPACK");
 
-    const result = await verify(input, senderKey);
+    const result = await (isArmor
+      ? verifyFromStr(inputStr, senderKey)
+      : verify(signed, senderKey));
+
     if (result.verified) {
       await Deno.stdout.write(result.message);
     } else {

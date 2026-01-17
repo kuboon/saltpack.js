@@ -4,7 +4,7 @@
  * Run with: deno run examples/encryption.ts
  */
 
-import { decrypt, encrypt, generateKeyPair } from "../mod.ts";
+import { decryptFromStr, encryptToStr, generateKeyPair } from "../mod.ts";
 
 async function main() {
   console.log("Saltpack Encryption Example\n");
@@ -24,20 +24,18 @@ async function main() {
 
   // Encrypt the message
   console.log("3. Encrypting message...");
-  const encrypted = await encrypt(plaintext, sender, [recipient.publicKey], {
-    armor: true,
-  });
+  const encrypted = await encryptToStr(plaintext, sender, [
+    recipient.publicKey,
+  ]);
   console.log("   ✓ Message encrypted\n");
 
-  if (typeof encrypted === "string") {
-    console.log("4. Encrypted message (ASCII-armored):");
-    console.log(encrypted);
-    console.log();
-  }
+  console.log("4. Encrypted message (ASCII-armored):");
+  console.log(encrypted);
+  console.log();
 
   // Decrypt the message
   console.log("5. Decrypting message...");
-  const result = await decrypt(encrypted, recipient);
+  const result = await decryptFromStr(encrypted, recipient);
   const decryptedText = new TextDecoder().decode(result.plaintext);
   console.log("   ✓ Message decrypted\n");
 

@@ -4,7 +4,7 @@
  * Run with: deno run examples/signing.ts
  */
 
-import { generateSigningKeyPair, sign, verify } from "../mod.ts";
+import { generateSigningKeyPair, signToStr, verifyFromStr } from "../mod.ts";
 
 async function main() {
   console.log("Saltpack Signing Example\n");
@@ -22,18 +22,16 @@ async function main() {
 
   // Sign the message
   console.log("3. Signing message...");
-  const signed = await sign(messageBytes, keyPair, { armor: true });
+  const signed = await signToStr(messageBytes, keyPair);
   console.log("   ✓ Message signed\n");
 
-  if (typeof signed === "string") {
-    console.log("4. Signed message (ASCII-armored):");
-    console.log(signed);
-    console.log();
-  }
+  console.log("4. Signed message (ASCII-armored):");
+  console.log(signed);
+  console.log();
 
   // Verify the signature
   console.log("5. Verifying signature...");
-  const result = await verify(signed, keyPair.publicKey);
+  const result = await verifyFromStr(signed, keyPair.publicKey);
   console.log("   ✓ Signature verified\n");
 
   if (result.verified) {

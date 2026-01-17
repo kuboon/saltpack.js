@@ -25,12 +25,35 @@ function makeNonce(prefix: Uint8Array, index: bigint): Uint8Array {
   return nonce;
 }
 
-export async function encrypt(
+/**
+ * Encrypts a message for one or more recipients using Saltpack encryption format.
+ *
+ * The encryption format provides:
+ * - Privacy: Messages are encrypted with ephemeral sender keys
+ * - Multiple recipients support
+ * - Authenticated encryption using NaCl box primitive
+ * - Optional sender anonymity
+ *
+ * @param plaintext - The message to encrypt
+ * @param senderKeyPair - The sender's key pair (optional, can be anonymous)
+ * @param recipientPublicKeys - Array of recipient public keys
+ * @param options - Encryption options
+ * @returns Encrypted message in binary format
+ *
+ * @example
+ * ```ts
+ * const plaintext = new TextEncoder().encode("Hello!");
+ * const sender = generateKeyPair();
+ * const recipient = generateKeyPair();
+ *
+ * const encrypted = encrypt(plaintext, sender, [recipient.publicKey]);
+ * ```
+ */
+export function encrypt(
   plaintext: Uint8Array,
   senderKeyPair: KeyPair | null,
   recipientPublicKeys: PublicKey[],
-  options?: { armor?: boolean },
-): Promise<Uint8Array | string> {
+): Uint8Array {
   if (recipientPublicKeys.length === 0) {
     throw new Error("At least one recipient public key is required");
   }
@@ -164,29 +187,41 @@ export async function encrypt(
     offset += c.length;
   }
 
-  if (options?.armor) {
-    return armor(result, "ENCRYPTED");
-  }
-
   return result;
 }
 
+/**
+ * Encrypts a message to an ASCII-armored string.
+ * @see encrypt
+ */
+export function encryptToStr(
+  plaintext: Uint8Array,
+  senderKeyPair: KeyPair | null,
+  recipientPublicKeys: PublicKey[],
+): string {
+  const bytes = encrypt(plaintext, senderKeyPair, recipientPublicKeys);
+  return armor(bytes, "ENCRYPTED");
+}
+
+/**
+ * Decrypts a Saltpack encrypted message.
+ *
+ * @param encrypted - The encrypted message (binary or ASCII-armored)
+ * @param recipientKeyPair - The recipient's key pair
+ * @returns Decryption result containing the plaintext and optional sender public key
+ *
+ * @example
+ * ```ts
+ * const encrypted = encrypt(plaintext, sender, [recipient.publicKey]);
+ * const result = await decrypt(encrypted, recipient);
+ * console.log(new TextDecoder().decode(result.plaintext));
+ * ```
+ */
 export async function decrypt(
-  encrypted: Uint8Array | string,
+  encrypted: Uint8Array,
   recipientKeyPair: KeyPair,
 ): Promise<DecryptionResult> {
-  let data: Uint8Array;
-  if (typeof encrypted === "string") {
-    try {
-      data = dearmor(encrypted);
-    } catch (_e) {
-      throw new Error("Failed to dearmor input.");
-    }
-  } else {
-    data = encrypted;
-  }
-
-  const generator = decodeMulti(data);
+  const generator = decodeMulti(encrypted);
   const headerResult = await generator.next();
   if (headerResult.done) throw new Error("Empty message");
 
@@ -269,7 +304,7 @@ export async function decrypt(
   }
 
   let isAnon = true;
-  for (let b of senderPkDecrypted) if (b !== 0) isAnon = false;
+  for (const b of senderPkDecrypted) if (b !== 0) isAnon = false;
   const senderPublicKey = isAnon ? undefined : senderPkDecrypted;
 
   // Decrypt Payload Chunks
@@ -312,4 +347,21 @@ export async function decrypt(
   }
 
   return { plaintext, senderPublicKey };
+}
+
+/**
+ * Decrypts a Saltpack armored message.
+ * @see decrypt
+ */
+export function decryptFromStr(
+  encrypted: string,
+  recipientKeyPair: KeyPair,
+): Promise<DecryptionResult> {
+  let data: Uint8Array;
+  try {
+    data = dearmor(encrypted);
+  } catch (_e) {
+    throw new Error("Failed to dearmor input.");
+  }
+  return decrypt(data, recipientKeyPair);
 }

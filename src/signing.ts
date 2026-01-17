@@ -12,11 +12,32 @@ import { armor, dearmor } from "./armor.ts";
 
 const CHUNK_SIZE = 1024 * 1024; // 1MB
 
-export async function sign(
+/**
+ * Signs a message using Saltpack attached signing format.
+ *
+ * The signing format provides:
+ * - Streaming support for large messages
+ * - Ed25519 signatures
+ * - Abuse resistance with random nonce
+ * - Message chunking for efficiency
+ *
+ * @param message - The message to sign
+ * @param signingKeyPair - The signer's Ed25519 key pair
+ * @param options - Signing options
+ * @returns Signed message in binary format (or ASCII-armored if requested)
+ *
+ * @example
+ * ```ts
+ * const message = new TextEncoder().encode("Hello, World!");
+ * const keyPair = generateSigningKeyPair();
+ *
+ * const signed = sign(message, keyPair);
+ * ```
+ */
+export function sign(
   message: Uint8Array,
   signingKeyPair: KeyPair,
-  options?: { armor?: boolean },
-): Promise<Uint8Array | string> {
+): Uint8Array {
   // 1. Generate random nonce (32 bytes)
   const headerNonce = nacl.randomBytes(32);
 
@@ -81,11 +102,19 @@ export async function sign(
     offset += p.length;
   }
 
-  if (options?.armor) {
-    return armor(result, "SIGNED");
-  }
-
   return result;
+}
+
+/**
+ * Signs a message to an ASCII-armored string.
+ * @see sign
+ */
+export function signToStr(
+  message: Uint8Array,
+  signingKeyPair: KeyPair,
+): string {
+  const result = sign(message, signingKeyPair);
+  return armor(result, "SIGNED");
 }
 
 function computeSignature(
@@ -104,7 +133,7 @@ function computeSignature(
 
   const signInput = new Uint8Array(
     headerHash.length + nonce.length + indexBytes.length + finalByte.length +
-      chunk.length,
+    chunk.length,
   );
 
   let off = 0;
@@ -121,22 +150,30 @@ function computeSignature(
   return nacl.sign.detached(signInput, secretKey);
 }
 
+/**
+ * Verifies a Saltpack signed message and extracts the original message.
+ *
+ * @param signedMessage - The signed message (binary or ASCII-armored)
+ * @param signerPublicKey - The expected signer's public key
+ * @returns Verification result with the original message and verification status
+ * @throws Error if verification fails
+ *
+ * @example
+ * ```ts
+ * const signed = sign(message, keyPair);
+ * const result = await verify(signed, keyPair.publicKey);
+ *
+ * if (result.verified) {
+ *   console.log("Signature valid!");
+ *   console.log(new TextDecoder().decode(result.message));
+ * }
+ * ```
+ */
 export async function verify(
-  signedMessage: Uint8Array | string,
+  signedMessage: Uint8Array,
   signerPublicKey: PublicKey,
 ): Promise<VerificationResult> {
-  let data: Uint8Array;
-  if (typeof signedMessage === "string") {
-    try {
-      data = dearmor(signedMessage);
-    } catch (_e) {
-      throw new Error("Failed to dearmor input.");
-    }
-  } else {
-    data = signedMessage;
-  }
-
-  const generator = decodeMulti(data);
+  const generator = decodeMulti(signedMessage);
   const headerResult = await generator.next();
   if (headerResult.done) throw new Error("Empty message");
 
@@ -254,4 +291,21 @@ export async function verify(
     senderPublicKey: senderPk,
     verified: true,
   };
+}
+
+/**
+ * Verifies a Saltpack armored signed message.
+ * @see verify
+ */
+export function verifyFromStr(
+  signedMessage: string,
+  signerPublicKey: PublicKey,
+): Promise<VerificationResult> {
+  let data: Uint8Array;
+  try {
+    data = dearmor(signedMessage);
+  } catch (_e) {
+    throw new Error("Failed to dearmor input.");
+  }
+  return verify(data, signerPublicKey);
 }

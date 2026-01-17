@@ -1,4 +1,4 @@
-import { assertEquals, assertStringIncludes } from "jsr:@std/assert";
+import { assertEquals, assertStringIncludes } from "@std/assert";
 
 const CLI_PATH = new URL("./cli.ts", import.meta.url).pathname;
 

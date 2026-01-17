@@ -17,18 +17,23 @@
  * const senderKeyPair = generateKeyPair();
  * const recipientKeyPair = generateKeyPair();
  *
- * const encrypted = await encrypt(plaintext, senderKeyPair, [recipientKeyPair.publicKey]);
+ * const encrypted = encrypt(plaintext, senderKeyPair, [recipientKeyPair.publicKey]);
  * const decrypted = await decrypt(encrypted, recipientKeyPair);
  *
  * // Signing example
  * const message = new TextEncoder().encode("Signed message");
- * const signed = await sign(message, senderKeyPair);
+ * const signed = sign(message, senderKeyPair);
  * const verified = await verify(signed, senderKeyPair.publicKey);
  * ```
  */
 
-export { decrypt, encrypt } from "./src/encryption.ts";
-export { sign, verify } from "./src/signing.ts";
+export {
+  decrypt,
+  decryptFromStr,
+  encrypt,
+  encryptToStr,
+} from "./src/encryption.ts";
+export { sign, signToStr, verify, verifyFromStr } from "./src/signing.ts";
 export { armor, dearmor } from "./src/armor.ts";
 export { generateKeyPair, generateSigningKeyPair } from "./src/keys.ts";
 export type { KeyPair, PublicKey, SecretKey } from "./src/types.ts";

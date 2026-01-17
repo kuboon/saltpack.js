@@ -30,15 +30,19 @@ deno run jsr:@kuboon/saltpack keygen
 
 # Encrypt
 echo "hello" | deno run jsr:@kuboon/saltpack encrypt -k <hex-recipient-public-key>
+# uses SALTPACK_ENCRYPT_PK
 
 # Decrypt
 cat encrypted.msg | deno run jsr:@kuboon/saltpack decrypt -k <hex-recipient-secret-key>
+# uses SALTPACK_DECRYPT_SK
 
 # Sign
 echo "hello" | deno run jsr:@kuboon/saltpack sign -k <hex-signing-secret-key>
+# uses SALTPACK_SIGN_SK
 
 # Verify
 cat signed.msg | deno run jsr:@kuboon/saltpack verify -k <hex-sender-public-key>
+# uses SALTPACK_VERIFY_PK
 ```
 
 Options:
@@ -48,9 +52,30 @@ Options:
 - `-a, --armor`: Output ASCII armored data (default: true)
 - `--json`: Output keys in JSON format (for keygen)
 
+### Key Types
+
+The `keygen` command generates distinct keys for encryption and signing:
+
+- `SALTPACK_ENCRYPT_PK`: Public key for **encryption** (share with senders)
+- `SALTPACK_DECRYPT_SK`: Secret key for **decryption** (keep private)
+- `SALTPACK_VERIFY_PK`: Public key for **verification** (share with recipients)
+- `SALTPACK_SIGN_SK`: Secret key for **signing** (keep private)
+
 ## Installation
 
+### Browser
+
+```html
+<script type="module">
+  import { decrypt, encrypt } from "https://jsr.io/@kuboon/saltpack";
+</script>
+```
+
 ### Deno
+
+```bash
+deno add jsr:@kuboon/saltpack
+```
 
 ```typescript
 import { decrypt, encrypt, sign, verify } from "@kuboon/saltpack";
@@ -71,7 +96,11 @@ import { decrypt, encrypt, sign, verify } from "@kuboon/saltpack";
 ### Encryption and Decryption
 
 ```typescript
-import { decrypt, encrypt, generateKeyPair } from "@kuboon/saltpack";
+import {
+  decryptFromStr,
+  encryptToStr,
+  generateKeyPair,
+} from "@kuboon/saltpack";
 
 // Generate key pairs
 const sender = generateKeyPair();
@@ -79,12 +108,10 @@ const recipient = generateKeyPair();
 
 // Encrypt a message
 const plaintext = new TextEncoder().encode("Hello, Saltpack!");
-const encrypted = await encrypt(plaintext, sender, [recipient.publicKey], {
-  armor: true,
-});
+const encrypted = encryptToStr(plaintext, sender, [recipient.publicKey]);
 
 // Decrypt the message
-const result = await decrypt(encrypted, recipient);
+const result = await decryptFromStr(encrypted, recipient);
 const decryptedText = new TextDecoder().decode(result.plaintext);
 console.log(decryptedText); // "Hello, Saltpack!"
 ```
@@ -92,17 +119,21 @@ console.log(decryptedText); // "Hello, Saltpack!"
 ### Signing and Verification
 
 ```typescript
-import { generateSigningKeyPair, sign, verify } from "@kuboon/saltpack";
+import {
+  generateSigningKeyPair,
+  signToStr,
+  verifyFromStr,
+} from "@kuboon/saltpack";
 
 // Generate signing key pair
 const keyPair = generateSigningKeyPair();
 
 // Sign a message
 const message = new TextEncoder().encode("Important message");
-const signed = await sign(message, keyPair, { armor: true });
+const signed = signToStr(message, keyPair);
 
 // Verify the signature
-const result = await verify(signed, keyPair.publicKey);
+const result = await verifyFromStr(signed, keyPair.publicKey);
 if (result.verified) {
   const originalMessage = new TextDecoder().decode(result.message);
   console.log("Verified:", originalMessage);
@@ -113,44 +144,70 @@ if (result.verified) {
 
 ### Encryption
 
-#### `encrypt(plaintext, senderKeyPair, recipientPublicKeys, options?)`
+#### `encrypt(plaintext, senderKeyPair, recipientPublicKeys)`
 
-Encrypts a message for one or more recipients.
+Encrypts a message for one or more recipients (binary output).
 
 - `plaintext: Uint8Array` - The message to encrypt
 - `senderKeyPair: KeyPair | null` - Sender's key pair (null for anonymous)
 - `recipientPublicKeys: PublicKey[]` - Array of recipient public keys
-- `options?: { armor?: boolean }` - Options (set armor to true for ASCII output)
-- Returns: `Promise<Uint8Array | string>` - Encrypted message
+- Returns: `Uint8Array` - Encrypted message
+
+#### `encryptToStr(plaintext, senderKeyPair, recipientPublicKeys)`
+
+Encrypts a message and returns ASCII-armored string.
+
+- Same arguments as `encrypt`
+- Returns: `string`
 
 #### `decrypt(encrypted, recipientKeyPair)`
 
-Decrypts a Saltpack encrypted message.
+Decrypts a Saltpack encrypted message (binary input).
 
-- `encrypted: Uint8Array | string` - The encrypted message
+- `encrypted: Uint8Array` - The encrypted message
 - `recipientKeyPair: KeyPair` - Recipient's key pair
 - Returns: `Promise<DecryptionResult>` - Contains plaintext and optional sender
   public key
 
+#### `decryptFromStr(encrypted, recipientKeyPair)`
+
+Decrypts a Saltpack encrypted message (string input).
+
+- `encrypted: string` - The armored encrypted message
+- Returns: `Promise<DecryptionResult>`
+
 ### Signing
 
-#### `sign(message, signingKeyPair, options?)`
+#### `sign(message, signingKeyPair)`
 
-Signs a message using attached signing format.
+Signs a message using attached signing format (binary output).
 
 - `message: Uint8Array` - The message to sign
 - `signingKeyPair: KeyPair` - Signer's Ed25519 key pair
-- `options?: { armor?: boolean }` - Options (set armor to true for ASCII output)
-- Returns: `Promise<Uint8Array | string>` - Signed message
+- Returns: `Uint8Array` - Signed message
+
+#### `signToStr(message, signingKeyPair)`
+
+Signs a message and returns ASCII-armored string.
+
+- Same arguments as `sign`
+- Returns: `string`
 
 #### `verify(signedMessage, signerPublicKey)`
 
-Verifies a signed message.
+Verifies a signed message (binary input).
 
-- `signedMessage: Uint8Array | string` - The signed message
+- `signedMessage: Uint8Array` - The signed message
 - `signerPublicKey: PublicKey` - Expected signer's public key
 - Returns: `Promise<VerificationResult>` - Contains message, sender public key,
   and verification status
+
+#### `verifyFromStr(signedMessage, signerPublicKey)`
+
+Verifies a signed message (string input).
+
+- `signedMessage: string` - The armored signed message
+- Returns: `Promise<VerificationResult>`
 
 ### Key Generation
 
@@ -192,7 +249,7 @@ Decodes ASCII-armored data into binary.
 ### Running Tests
 
 ```bash
-deno test --allow-read --allow-write
+deno test -P
 ```
 
 ### Linting
@@ -210,7 +267,7 @@ deno fmt
 ### Type Checking
 
 ```bash
-deno check mod.ts
+deno check
 ```
 
 ## Contributing
