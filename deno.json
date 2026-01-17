@@ -12,7 +12,7 @@
     "tweetnacl": "npm:tweetnacl@^1.0.3",
     "@msgpack/msgpack": "npm:@msgpack/msgpack@^3.0.0-beta2"
   },
-  "version": "0.1.6",
+  "version": "0.1.7",
   "exports": {
     ".": "./mod.ts",
     "./cli": "./src/cli.ts"
