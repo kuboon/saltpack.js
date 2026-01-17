@@ -28,28 +28,24 @@ This package provides a simple CLI wrapper:
 # Generate keys
 deno run jsr:@kuboon/saltpack keygen
 
-# Encrypt
-echo "hello" | deno run jsr:@kuboon/saltpack encrypt -k <hex-recipient-public-key>
-# uses SALTPACK_ENCRYPT_PK
+# Encrypt (output text using armor)
+echo "hello" | deno run jsr:@kuboon/saltpack encrypt -k $SALTPACK_ENCRYPT_PK > encrypted.msg
 
-# Decrypt
-cat encrypted.msg | deno run jsr:@kuboon/saltpack decrypt -k <hex-recipient-secret-key>
-# uses SALTPACK_DECRYPT_SK
+# Decrypt (armored or binary auto detect)
+cat encrypted.msg | deno run jsr:@kuboon/saltpack decrypt -k $SALTPACK_DECRYPT_SK
 
 # Sign
-echo "hello" | deno run jsr:@kuboon/saltpack sign -k <hex-signing-secret-key>
-# uses SALTPACK_SIGN_SK
+echo "hello" | deno run jsr:@kuboon/saltpack sign -k $SALTPACK_SIGN_SK > signed.msg
 
 # Verify
-cat signed.msg | deno run jsr:@kuboon/saltpack verify -k <hex-sender-public-key>
-# uses SALTPACK_VERIFY_PK
+cat signed.msg | deno run jsr:@kuboon/saltpack verify -k $SALTPACK_VERIFY_PK
 ```
 
 Options:
 
 - `-k, --key`: Key (hex). Public key for encryption/verification, Secret key for
   decryption/signing.
-- `-a, --armor`: Output ASCII armored data (default: true)
+- `-b, --bin`: Output binary data (skip armoring, default: false)
 - `--json`: Output keys in JSON format (for keygen)
 
 ### Key Types

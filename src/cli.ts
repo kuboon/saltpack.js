@@ -18,11 +18,11 @@ import { fromHex, toHex } from "./utils.ts";
 
 export async function cli() {
   const args = parseArgs(Deno.args, {
-    boolean: ["armor", "help", "json"],
+    boolean: ["bin", "help", "json"],
     string: ["key"],
     collect: ["key"],
-    alias: { a: "armor", k: "key", h: "help" },
-    default: { armor: true, json: false },
+    alias: { k: "key", h: "help" },
+    default: { bin: false, json: false },
   });
 
   if (args.help) {
@@ -71,7 +71,7 @@ Commands:
 
 Options:
   -k, --key <key>         Private/Public key (hex) (for all operations)
-  -a, --armor             Output as ASCII armor (default: true)
+  --bin                   Output in binary format (default: false)
   --json                  Output keys in JSON format (for keygen)
   -h, --help              Show help
 `);
@@ -101,7 +101,7 @@ async function handleEncrypt(args: ReturnType<typeof parseArgs>) {
   const senderKp: KeyPair | null = null;
 
   try {
-    if (args.armor) {
+    if (!args.bin) {
       const encrypted = await encryptToStr(plaintext, senderKp, recipients);
       outputResult(encrypted);
     } else {
@@ -158,7 +158,7 @@ async function handleSign(args: ReturnType<typeof parseArgs>) {
   const message = await readAll(Deno.stdin);
 
   try {
-    if (args.armor) {
+    if (!args.bin) {
       const signed = await signToStr(message, signingKp);
       outputResult(signed);
     } else {

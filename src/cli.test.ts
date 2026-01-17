@@ -5,7 +5,9 @@ const CLI_PATH = new URL("./cli.ts", import.meta.url).pathname;
 async function runCli(
   args: string[],
   input?: string | Uint8Array,
-): Promise<{ stdout: string; stderr: string; code: number }> {
+): Promise<
+  { stdout: string; stderr: string; code: number; stdoutBytes: Uint8Array }
+> {
   const command = new Deno.Command(Deno.execPath(), {
     args: ["run", "-A", CLI_PATH, ...args],
     stdin: "piped",
@@ -27,6 +29,7 @@ async function runCli(
     code,
     stdout: new TextDecoder().decode(stdout),
     stderr: new TextDecoder().decode(stderr),
+    stdoutBytes: stdout,
   };
 }
 
@@ -119,4 +122,43 @@ Deno.test("CLI: decrypt missing key error", async () => {
   const { code, stderr } = await runCli(["decrypt"], "data");
   assertEquals(code, 1);
   assertStringIncludes(stderr, "Error: Secret key is required");
+});
+
+Deno.test("CLI: encrypt and decrypt binary", async () => {
+  // Generate keys
+  const { stdout: keyOutput } = await runCli(["keygen"]);
+  const keys: Record<string, string> = {};
+  for (const line of keyOutput.split("\n")) {
+    const [k, v] = line.split("=");
+    if (k && v) keys[k.trim()] = v.trim();
+  }
+
+  const encryptPk = keys["SALTPACK_ENCRYPT_PK"];
+  const decryptSk = keys["SALTPACK_DECRYPT_SK"];
+  const plaintext = "Hello, Binary Saltpack!";
+
+  // Encrypt with --bin
+  const {
+    code: encCode,
+    stdout: encryptedStr,
+    stdoutBytes: encryptedBytes,
+    stderr: encStderr,
+  } = await runCli(
+    ["encrypt", "-k", encryptPk, "--bin"],
+    plaintext,
+  );
+  assertEquals(encCode, 0, `Encrypt failed: ${encStderr}`);
+
+  // Verify it is NOT armored
+  if (encryptedStr.includes("BEGIN SALTPACK")) {
+    throw new Error("Output should not be armored in binary mode");
+  }
+
+  // Decrypt the binary bytes
+  const { code: decCode, stdout: decrypted, stderr: decStderr } = await runCli(
+    ["decrypt", "-k", decryptSk],
+    encryptedBytes,
+  );
+  assertEquals(decCode, 0, `Decrypt failed: ${decStderr}`);
+  assertEquals(decrypted, plaintext);
 });
