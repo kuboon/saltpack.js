@@ -32,3 +32,8 @@ export { sign, verify } from "./src/signing.ts";
 export { armor, dearmor } from "./src/armor.ts";
 export { generateKeyPair, generateSigningKeyPair } from "./src/keys.ts";
 export type { KeyPair, PublicKey, SecretKey } from "./src/types.ts";
+
+if (import.meta.main) {
+  const { cli } = await import("./src/cli.ts");
+  await cli();
+}

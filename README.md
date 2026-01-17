@@ -20,6 +20,31 @@ It features:
 - **Authenticated encryption**: Only outputs authenticated bytes
 - **Simple and safe**: Designed to avoid common cryptographic pitfalls
 
+## CLI
+
+This package provides a simple CLI wrapper:
+
+```bash
+# Encrypt
+echo "hello" | deno run jsr:@kuboon/saltpack encrypt -r <hex-recipient-public-key>
+
+# Decrypt
+cat encrypted.msg | deno run jsr:@kuboon/saltpack decrypt -k <hex-recipient-secret-key>
+
+# Sign
+echo "hello" | deno run jsr:@kuboon/saltpack sign -k <hex-signing-secret-key>
+
+# Verify
+cat signed.msg | deno run jsr:@kuboon/saltpack verify -s <hex-sender-public-key>
+```
+
+Options:
+
+- `-r, --recipient`: Recipient public key (hex)
+- `-s, --sender`: Sender public key (hex) for verification
+- `-k, --key`: Secret key (hex) for decryption or signing
+- `-a, --armor`: Output ASCII armored data (default: true)
+
 ## Installation
 
 ### Deno

@@ -1,13 +1,15 @@
 {
   "name": "@kuboon/saltpack",
   "version": "0.1.0",
-  "exports": "./mod.ts",
+  "exports": {
+    ".": "./mod.ts",
+    "./cli": "./src/cli.ts"
+  },
   "tasks": {
     "dev": "deno run --watch mod.ts"
   },
-  "lint": {
-    "rules": {
-      "tags": ["recommended"]
-    }
+  "imports": {
+    "@std/cli": "jsr:@std/cli@^1.0.25",
+    "@std/io": "jsr:@std/io@^0.225.2"
   }
 }
