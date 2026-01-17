@@ -1,6 +1,6 @@
 {
   "name": "@kuboon/saltpack",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "exports": {
     ".": "./mod.ts",
     "./cli": "./src/cli.ts"
@@ -11,6 +11,15 @@
   },
   "imports": {
     "@std/cli": "jsr:@std/cli@^1.0.25",
-    "@std/io": "jsr:@std/io@^0.225.2"
+    "@std/io": "jsr:@std/io@^0.225.2",
+    "tweetnacl": "npm:tweetnacl@^1.0.3",
+    "@msgpack/msgpack": "npm:@msgpack/msgpack@^3.0.0-beta2"
+  },
+  "test": {
+    "permissions": {
+      "run": [
+        "deno"
+      ]
+    }
   }
 }
