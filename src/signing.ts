@@ -133,7 +133,7 @@ function computeSignature(
 
   const signInput = new Uint8Array(
     headerHash.length + nonce.length + indexBytes.length + finalByte.length +
-    chunk.length,
+      chunk.length,
   );
 
   let off = 0;
