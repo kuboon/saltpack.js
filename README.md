@@ -25,8 +25,11 @@ It features:
 This package provides a simple CLI wrapper:
 
 ```bash
+# Generate keys
+deno run jsr:@kuboon/saltpack keygen
+
 # Encrypt
-echo "hello" | deno run jsr:@kuboon/saltpack encrypt -r <hex-recipient-public-key>
+echo "hello" | deno run jsr:@kuboon/saltpack encrypt -k <hex-recipient-public-key>
 
 # Decrypt
 cat encrypted.msg | deno run jsr:@kuboon/saltpack decrypt -k <hex-recipient-secret-key>
@@ -35,15 +38,15 @@ cat encrypted.msg | deno run jsr:@kuboon/saltpack decrypt -k <hex-recipient-secr
 echo "hello" | deno run jsr:@kuboon/saltpack sign -k <hex-signing-secret-key>
 
 # Verify
-cat signed.msg | deno run jsr:@kuboon/saltpack verify -s <hex-sender-public-key>
+cat signed.msg | deno run jsr:@kuboon/saltpack verify -k <hex-sender-public-key>
 ```
 
 Options:
 
-- `-r, --recipient`: Recipient public key (hex)
-- `-s, --sender`: Sender public key (hex) for verification
-- `-k, --key`: Secret key (hex) for decryption or signing
+- `-k, --key`: Key (hex). Public key for encryption/verification, Secret key for
+  decryption/signing.
 - `-a, --armor`: Output ASCII armored data (default: true)
+- `--json`: Output keys in JSON format (for keygen)
 
 ## Installation
 
