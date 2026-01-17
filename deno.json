@@ -7,6 +7,7 @@
   },
   "tasks": {
     "dev": "deno run --watch mod.ts",
+    "check:all": "deno check && deno lint && deno test -P && deno fmt",
     "release": "deno run --allow-read --allow-write --allow-run=git scripts/release.ts"
   },
   "imports": {
