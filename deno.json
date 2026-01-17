@@ -1,10 +1,5 @@
 {
   "name": "@kuboon/saltpack",
-  "version": "0.1.6",
-  "exports": {
-    ".": "./mod.ts",
-    "./cli": "./src/cli.ts"
-  },
   "tasks": {
     "dev": "deno run --watch mod.ts",
     "check:all": "deno check && deno lint && deno test -P && deno fmt",
@@ -16,6 +11,19 @@
     "@std/assert": "jsr:@std/assert@^1.0.0",
     "tweetnacl": "npm:tweetnacl@^1.0.3",
     "@msgpack/msgpack": "npm:@msgpack/msgpack@^3.0.0-beta2"
+  },
+  "version": "0.1.6",
+  "exports": {
+    ".": "./mod.ts",
+    "./cli": "./src/cli.ts"
+  },
+  "publish": {
+    "include": [
+      "LICENSE",
+      "README.md",
+      "mod.ts",
+      "src/"
+    ]
   },
   "test": {
     "permissions": {
