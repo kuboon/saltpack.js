@@ -6,7 +6,8 @@
     "./cli": "./src/cli.ts"
   },
   "tasks": {
-    "dev": "deno run --watch mod.ts"
+    "dev": "deno run --watch mod.ts",
+    "release": "deno run --allow-read --allow-write --allow-run=git scripts/release.ts"
   },
   "imports": {
     "@std/cli": "jsr:@std/cli@^1.0.25",
