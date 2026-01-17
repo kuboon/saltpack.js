@@ -3,9 +3,7 @@
  */
 
 import type { KeyPair } from "./types.ts";
-
-// Using Web Crypto API for key generation
-const crypto = globalThis.crypto;
+import nacl from "tweetnacl";
 
 /**
  * Generates a new key pair for encryption/decryption operations.
@@ -21,14 +19,8 @@ const crypto = globalThis.crypto;
  * ```
  */
 export function generateKeyPair(): KeyPair {
-  // Generate random 32-byte secret key
-  const secretKey = crypto.getRandomValues(new Uint8Array(32));
-
-  // For now, return a placeholder - in full implementation,
-  // we'd compute the public key from the secret key using X25519
-  const publicKey = crypto.getRandomValues(new Uint8Array(32));
-
-  return { publicKey, secretKey };
+  const kp = nacl.box.keyPair();
+  return { publicKey: kp.publicKey, secretKey: kp.secretKey };
 }
 
 /**
@@ -45,13 +37,16 @@ export function generateKeyPair(): KeyPair {
  * ```
  */
 export function generateSigningKeyPair(): KeyPair {
-  // Generate random 32-byte seed
-  const _seed = crypto.getRandomValues(new Uint8Array(32));
+  const kp = nacl.sign.keyPair();
+  return { publicKey: kp.publicKey, secretKey: kp.secretKey };
+}
 
-  // For now, return placeholders - in full implementation,
-  // we'd use Ed25519 key generation
-  const publicKey = crypto.getRandomValues(new Uint8Array(32));
-  const secretKey = crypto.getRandomValues(new Uint8Array(64));
+export function getKeyPairFromSecret(secretKey: Uint8Array): KeyPair {
+  const kp = nacl.box.keyPair.fromSecretKey(secretKey);
+  return { publicKey: kp.publicKey, secretKey: kp.secretKey };
+}
 
-  return { publicKey, secretKey };
+export function getSigningKeyPairFromSecret(secretKey: Uint8Array): KeyPair {
+  const kp = nacl.sign.keyPair.fromSecretKey(secretKey);
+  return { publicKey: kp.publicKey, secretKey: kp.secretKey };
 }

@@ -1,16 +1,23 @@
 import { parseArgs } from "@std/cli/parse-args";
 import { readAll } from "@std/io/read-all";
 import { decrypt, encrypt } from "./encryption.ts";
+import {
+  generateKeyPair,
+  generateSigningKeyPair,
+  getKeyPairFromSecret,
+  getSigningKeyPairFromSecret,
+} from "./keys.ts";
 import { sign, verify } from "./signing.ts";
 import type { KeyPair } from "./types.ts";
+import { fromHex, toHex } from "./utils.ts";
 
 export async function cli() {
   const args = parseArgs(Deno.args, {
-    boolean: ["armor", "help"],
-    string: ["recipient", "sender", "key"],
-    collect: ["recipient"],
-    alias: { a: "armor", r: "recipient", s: "sender", k: "key", h: "help" },
-    default: { armor: true },
+    boolean: ["armor", "help", "json"],
+    string: ["key"],
+    collect: ["key"],
+    alias: { a: "armor", k: "key", h: "help" },
+    default: { armor: true, json: false },
   });
 
   if (args.help) {
@@ -33,6 +40,9 @@ export async function cli() {
     case "verify":
       await handleVerify(args);
       break;
+    case "keygen":
+      handleKeygen(args);
+      break;
     default:
       if (args._.length === 0) {
         printHelp();
@@ -52,22 +62,22 @@ Commands:
   decrypt    Decrypt data from stdin
   sign       Sign data from stdin
   verify     Verify signed data from stdin
+  keygen     Generate new key pairs
 
 Options:
-  -r, --recipient <key>   Recipient public key (hex) (for encrypt)
-  -s, --sender <key>      Sender public key (hex) (for verify)
-  -k, --key <key>         Secret key (hex) (for decrypt, sign)
+  -k, --key <key>         Private/Public key (hex) (for all operations)
   -a, --armor             Output as ASCII armor (default: true)
+  --json                  Output keys in JSON format (for keygen)
   -h, --help              Show help
 `);
 }
 
 async function handleEncrypt(args: ReturnType<typeof parseArgs>) {
-  const recipientsHex = args.recipient as string[];
+  const recipientsHex = args.key as string[];
 
   if (!recipientsHex || recipientsHex.length === 0) {
-    console.error("Error: At least one recipient public key is required (-r).");
-    console.error("Example: echo 'hello' | deno run ... encrypt -r <hex-key>");
+    console.error("Error: At least one recipient public key is required (-k).");
+    console.error("Example: echo 'hello' | deno run ... encrypt -k <hex-key>");
     Deno.exit(1);
   }
 
@@ -98,36 +108,26 @@ async function handleEncrypt(args: ReturnType<typeof parseArgs>) {
 }
 
 async function handleDecrypt(args: ReturnType<typeof parseArgs>) {
-  const keyHex = args.key as string;
+  const keys = args.key as string[];
+  const keyHex = keys?.[0]; // Use the first key
   if (!keyHex) {
     console.error("Error: Secret key is required (-k).");
     Deno.exit(1);
   }
 
   const secretKey = fromHex(keyHex);
-  // In a real impl, we'd derive public key. Here we use a placeholder.
-  const recipientKp: KeyPair = {
-    secretKey,
-    publicKey: new Uint8Array(32),
-  };
+  const recipientKp = getKeyPairFromSecret(secretKey);
 
   const encrypted = await readAll(Deno.stdin);
 
   try {
-    // Decrypt can handle binary or string (armored)
-    // readAll returns Uint8Array. If input is armored string, we need to convert it?
-    // The decrypt function signature takes Uint8Array | string.
-    // If we read stdin, we get bytes. If those bytes are ASCII armor, we can pass them as string or bytes.
-    // The current decrypt implementation (placeholder) might not care, but `dearmor` expects string.
-    // Let's decode to string if it looks like armor?
-    // Actually, let's just pass the Uint8Array. If `decrypt` expects string for armor, we might need to TextDecoder it.
-    // Let's assume input might be armor.
     const inputStr = new TextDecoder().decode(encrypted);
     const input = inputStr.trim().startsWith("BEGIN SALTPACK")
       ? inputStr
       : encrypted;
 
     const result = await decrypt(input, recipientKp);
+    // console.error("Decrypted plaintext length:", result.plaintext.length);
     await Deno.stdout.write(result.plaintext);
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e);
@@ -137,17 +137,15 @@ async function handleDecrypt(args: ReturnType<typeof parseArgs>) {
 }
 
 async function handleSign(args: ReturnType<typeof parseArgs>) {
-  const keyHex = args.key as string;
+  const keys = args.key as string[];
+  const keyHex = keys?.[0]; // Use the first key
   if (!keyHex) {
     console.error("Error: Secret key is required (-k).");
     Deno.exit(1);
   }
 
   const secretKey = fromHex(keyHex);
-  const signingKp: KeyPair = {
-    secretKey,
-    publicKey: new Uint8Array(32), // Placeholder
-  };
+  const signingKp = getSigningKeyPairFromSecret(secretKey);
 
   const message = await readAll(Deno.stdin);
 
@@ -162,9 +160,10 @@ async function handleSign(args: ReturnType<typeof parseArgs>) {
 }
 
 async function handleVerify(args: ReturnType<typeof parseArgs>) {
-  const senderHex = args.sender as string;
+  const keys = args.key as string[];
+  const senderHex = keys?.[0]; // Use the first key
   if (!senderHex) {
-    console.error("Error: Sender public key is required (-s).");
+    console.error("Error: Sender public key is required (-k).");
     Deno.exit(1);
   }
 
@@ -199,18 +198,32 @@ async function outputResult(data: Uint8Array | string) {
   }
 }
 
-function fromHex(hexString: string): Uint8Array {
-  // Remove 0x prefix if present
-  const cleanHex = hexString.startsWith("0x") ? hexString.slice(2) : hexString;
+function handleKeygen(args: ReturnType<typeof parseArgs>) {
+  const encKp = generateKeyPair();
+  const signKp = generateSigningKeyPair();
 
-  if (cleanHex.length % 2 !== 0) {
-    throw new Error("Invalid hex string");
+  const encryptPk = toHex(encKp.publicKey, "pk_0x");
+  const decryptSk = toHex(encKp.secretKey, "sk_0x");
+  const verifyPk = toHex(signKp.publicKey, "pk_0x");
+  const signSk = toHex(signKp.secretKey, "sk_0x");
+
+  if (args.json) {
+    console.log(JSON.stringify(
+      {
+        SALTPACK_ENCRYPT_PK: encryptPk,
+        SALTPACK_DECRYPT_SK: decryptSk,
+        SALTPACK_VERIFY_PK: verifyPk,
+        SALTPACK_SIGN_SK: signSk,
+      },
+      null,
+      2,
+    ));
+  } else {
+    console.log(`SALTPACK_ENCRYPT_PK=${encryptPk}`);
+    console.log(`SALTPACK_DECRYPT_SK=${decryptSk}`);
+    console.log(`SALTPACK_VERIFY_PK=${verifyPk}`);
+    console.log(`SALTPACK_SIGN_SK=${signSk}`);
   }
-  const bytes = new Uint8Array(cleanHex.length / 2);
-  for (let i = 0; i < bytes.length; i++) {
-    bytes[i] = parseInt(cleanHex.substring(2 * i, 2 * i + 2), 16);
-  }
-  return bytes;
 }
 
 if (import.meta.main) {
