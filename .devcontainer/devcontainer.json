@@ -1,9 +1,9 @@
 {
   "name": "Deno",
-  "image": "mcr.microsoft.com/devcontainers/base:debian",
-  "features": {
-    "ghcr.io/devcontainers/features/deno:1": {}
+  "build": {
+    "dockerfile": "Dockerfile"
   },
+  "features": {},
   "customizations": {
     "vscode": {
       "extensions": [
